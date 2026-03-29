@@ -1,0 +1,35 @@
+name: Reflette
+options:
+  bundleIdPrefix: com.itnewcomer
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+  xcodeVersion: "15.0"
+
+targets:
+  Reflette:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources/Assets.xcassets
+    settings:
+      base:
+        INFOPLIST_FILE: Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Resources/Reflette.entitlements
+        SWIFT_VERSION: "5.9"
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_KEY_CFBundleDisplayName: Reflette
+        PRODUCT_BUNDLE_IDENTIFIER: com.itnewcomer.Reflette
+        SUPPORTS_MAC_DESIGNED_FOR_IPAD: true
+
+  RefletteTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    dependencies:
+      - target: Reflette
+    settings:
+      base:
+        SWIFT_VERSION: "5.9"
