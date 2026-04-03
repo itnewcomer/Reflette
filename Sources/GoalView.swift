@@ -303,6 +303,7 @@ struct GoalView: View {
             .padding(.horizontal)
             .padding(.bottom, 40)
             .padding()
+            .macContentFrame()
         }
         .navigationTitle(L10n.tabGoal)
         .background(AppColors.background.ignoresSafeArea())

@@ -163,6 +163,7 @@ struct HomeCalendarView: View {
                 }
             }
             .padding(.horizontal)
+            .macContentFrame()
         }
         .scrollIndicators(.hidden)
         .ignoresSafeArea(edges: .top)

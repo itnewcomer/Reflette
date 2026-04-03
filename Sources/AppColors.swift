@@ -74,6 +74,15 @@ extension View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.background)
     }
+
+    /// Mac Catalyst では最大幅を制限して中央寄せ、iOSではそのまま
+    func macContentFrame() -> some View {
+        #if targetEnvironment(macCatalyst)
+        self.frame(maxWidth: 720).frame(maxWidth: .infinity)
+        #else
+        self
+        #endif
+    }
 }
 
 extension Int {

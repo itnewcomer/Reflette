@@ -108,6 +108,7 @@ struct ReportView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
+            .macContentFrame()
         }
         .ignoresSafeArea(edges: .top)
         .background(AppColors.background.ignoresSafeArea())

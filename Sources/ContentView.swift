@@ -28,39 +28,86 @@ struct ContentView: View {
         ("gearshape.fill", "設定", "Settings"),
     ]
 
-    var body: some View {
-        VStack(spacing: 0) {
-            // コンテンツ
-            Group {
-                switch appState.selectedTab {
-                case 0:
-                    HomeCalendarView(
-                        appState: appState,
-                        ratingsForDates: ratingsForDates,
-                        items: items
-                    )
-                case 1:
-                    ReportView(
-                        selectedDate: $appState.selectedDate,
-                        ratingsForDates: ratingsForDates,
-                        items: items
-                    )
-                case 2:
-                    GoalView(
-                        selectedDate: $appState.selectedDate,
-                        ratingsForDates: ratingsForDates,
-                        items: items,
-                        emotionDict: emotionDict
-                    )
-                case 3:
-                    SettingsView()
-                default:
-                    EmptyView()
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    @ViewBuilder
+    private func tabContent(for index: Int) -> some View {
+        switch index {
+        case 0:
+            HomeCalendarView(
+                appState: appState,
+                ratingsForDates: ratingsForDates,
+                items: items
+            )
+        case 1:
+            ReportView(
+                selectedDate: $appState.selectedDate,
+                ratingsForDates: ratingsForDates,
+                items: items
+            )
+        case 2:
+            GoalView(
+                selectedDate: $appState.selectedDate,
+                ratingsForDates: ratingsForDates,
+                items: items,
+                emotionDict: emotionDict
+            )
+        case 3:
+            SettingsView()
+        default:
+            EmptyView()
+        }
+    }
 
-            // 自作タブバー
+    var body: some View {
+        #if targetEnvironment(macCatalyst)
+        macLayout
+        #else
+        iOSLayout
+        #endif
+    }
+
+    // MARK: - Mac レイアウト（サイドバー）
+
+    private var macLayout: some View {
+        NavigationSplitView {
+            List(0..<tabs.count, id: \.self, selection: $appState.selectedTab) { i in
+                Label(
+                    L10n.current == .ja ? tabs[i].labelJa : tabs[i].labelEn,
+                    systemImage: tabs[i].icon
+                )
+                .tag(i)
+                .foregroundColor(appState.selectedTab == i ? AppColors.accent : AppColors.textPrimary)
+            }
+            .listStyle(.sidebar)
+            .background(AppColors.background)
+            .scrollContentBackground(.hidden)
+            .navigationTitle("Reflette")
+        } detail: {
+            tabContent(for: appState.selectedTab)
+                .frame(minWidth: 500)
+        }
+        .preferredColorScheme(.dark)
+        .sheet(isPresented: $showGuide) { GuideView { showFirstRecord = true } }
+        .sheet(isPresented: $showFirstRecord) {
+            NavigationStack {
+                RecordEditorView(
+                    selectedDate: $appState.selectedDate,
+                    items: items,
+                    onComplete: { showFirstRecord = false }
+                )
+            }
+        }
+        .onAppear {
+            if !hasSeenGuide { showGuide = true; hasSeenGuide = true }
+        }
+    }
+
+    // MARK: - iOS レイアウト（底部タブバー）
+
+    private var iOSLayout: some View {
+        VStack(spacing: 0) {
+            tabContent(for: appState.selectedTab)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
             HStack {
                 ForEach(0..<tabs.count, id: \.self) { i in
                     Button {
@@ -84,11 +131,7 @@ struct ContentView: View {
         .background(AppColors.background)
         .ignoresSafeArea(edges: .bottom)
         .preferredColorScheme(.dark)
-        .sheet(isPresented: $showGuide) {
-            GuideView {
-                showFirstRecord = true
-            }
-        }
+        .sheet(isPresented: $showGuide) { GuideView { showFirstRecord = true } }
         .sheet(isPresented: $showFirstRecord) {
             NavigationStack {
                 RecordEditorView(
@@ -99,10 +142,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            if !hasSeenGuide {
-                showGuide = true
-                hasSeenGuide = true
-            }
+            if !hasSeenGuide { showGuide = true; hasSeenGuide = true }
         }
     }
 }
