@@ -160,7 +160,9 @@ struct SettingsView: View {
             content: content,
             trigger: UNCalendarNotificationTrigger(dateMatching: trigger, repeats: true)
         )
-        UNUserNotificationCenter.current().add(request)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error { print("Daily reminder scheduling failed: \(error)") }
+        }
     }
 
     private func removeDailyReminder() {
@@ -184,7 +186,9 @@ struct SettingsView: View {
             content: content,
             trigger: UNCalendarNotificationTrigger(dateMatching: trigger, repeats: true)
         )
-        UNUserNotificationCenter.current().add(request)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error { print("Monthly reminder scheduling failed: \(error)") }
+        }
     }
 
     private func removeMonthlyReminder() {

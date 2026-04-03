@@ -128,7 +128,7 @@ struct RefletteCalendarView: View {
         var items: [DayItem] = (0..<offset).map { _ in DayItem(day: 0, date: nil) }
 
         for day in range {
-            let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth)!
+            guard let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth) else { continue }
             items.append(DayItem(day: day, date: date))
         }
         return items

@@ -214,7 +214,8 @@ struct InsightView: View {
             }
         }
         // 最もネガティブな時間帯
-        if let worstIdx = timeNeg.enumerated().filter({ $0.element >= 2 }).max(by: { $0.element < $1.element })?.offset {
+        if let worstIdx = timeNeg.enumerated().filter({ $0.element >= 2 }).max(by: { $0.element < $1.element })?.offset,
+           worstIdx < timeIcons.count {
             let timeLabel = L10n.current == .ja
                 ? ["朝", "昼", "夜"][worstIdx]
                 : ["morning", "afternoon", "evening"][worstIdx]
@@ -226,7 +227,8 @@ struct InsightView: View {
             ))
         }
         // 最もポジティブな時間帯
-        if let bestIdx = timePos.enumerated().filter({ $0.element >= 2 }).max(by: { $0.element < $1.element })?.offset {
+        if let bestIdx = timePos.enumerated().filter({ $0.element >= 2 }).max(by: { $0.element < $1.element })?.offset,
+           bestIdx < timeIcons.count {
             let timeLabel = L10n.current == .ja
                 ? ["朝", "昼", "夜"][bestIdx]
                 : ["morning", "afternoon", "evening"][bestIdx]

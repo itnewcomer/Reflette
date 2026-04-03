@@ -100,6 +100,10 @@ struct GoalEditor: View {
     @State private var newExcitedGoal = ""
     @State private var newStretchGoal = ""
     @State private var newTaskTitle = ""
+    @State private var deleteTarget: GoalTask?
+    @State private var deleteCategory: DeleteCategory?
+
+    enum DeleteCategory { case excited, stretch, task }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -116,7 +120,8 @@ struct GoalEditor: View {
                         .foregroundColor(goalTask.isCompleted ? .gray : .primary)
                     Spacer()
                     Button(action: {
-                        goal.excitedGoals.removeAll { $0.id == goalTask.id }
+                        deleteTarget = goalTask
+                        deleteCategory = .excited
                     }) {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
@@ -152,7 +157,8 @@ struct GoalEditor: View {
                         .foregroundColor(goalTask.isCompleted ? .gray : .primary)
                     Spacer()
                     Button(action: {
-                        goal.stretchGoals.removeAll { $0.id == goalTask.id }
+                        deleteTarget = goalTask
+                        deleteCategory = .stretch
                     }) {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
@@ -188,7 +194,8 @@ struct GoalEditor: View {
                         .foregroundColor(task.isCompleted ? .gray : .primary)
                     Spacer()
                     Button(action: {
-                        goal.tasks.removeAll { $0.id == task.id }
+                        deleteTarget = task
+                        deleteCategory = .task
                     }) {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
@@ -211,9 +218,26 @@ struct GoalEditor: View {
 
             Divider()
 
-
         }
         .padding()
+        .confirmationDialog(
+            L10n.current == .ja ? "削除しますか？" : "Delete this item?",
+            isPresented: Binding(get: { deleteTarget != nil }, set: { if !$0 { deleteTarget = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button(L10n.current == .ja ? "削除" : "Delete", role: .destructive) {
+                guard let target = deleteTarget, let category = deleteCategory else { return }
+                switch category {
+                case .excited: goal.excitedGoals.removeAll { $0.id == target.id }
+                case .stretch: goal.stretchGoals.removeAll { $0.id == target.id }
+                case .task: goal.tasks.removeAll { $0.id == target.id }
+                }
+                deleteTarget = nil
+            }
+            Button(L10n.current == .ja ? "キャンセル" : "Cancel", role: .cancel) {
+                deleteTarget = nil
+            }
+        }
     }
 }
 
@@ -335,8 +359,7 @@ struct GoalView: View {
     // Binding取得
     private func binding(for goal: MonthlyGoal) -> Binding<MonthlyGoal> {
         guard let idx = monthlyGoals.firstIndex(where: { $0.id == goal.id }) else {
-            // フォールバック: 最初の目標を返す
-            return $monthlyGoals[0]
+            preconditionFailure("Goal not found in monthlyGoals — this should never happen")
         }
         return $monthlyGoals[idx]
     }

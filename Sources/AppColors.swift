@@ -85,8 +85,3 @@ extension View {
     }
 }
 
-extension Int {
-    func clamped(_ range: ClosedRange<Int>) -> Int {
-        self == 0 ? range.lowerBound : Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
-    }
-}

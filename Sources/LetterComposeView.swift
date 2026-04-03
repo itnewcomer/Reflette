@@ -75,7 +75,7 @@ struct GoalAchievementView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.current == .ja ? "Excited Goals" : "Excited Goals")
+            Text(L10n.excitedGoals)
                 .font(.subheadline).bold()
             ForEach($goal.excitedGoals) { $g in
                 HStack {
@@ -87,7 +87,7 @@ struct GoalAchievementView: View {
                         .strikethrough(g.isCompleted)
                 }
             }
-            Text(L10n.current == .ja ? "Stretch Goals" : "Stretch Goals")
+            Text(L10n.stretchGoals)
                 .font(.subheadline).bold()
             ForEach($goal.stretchGoals) { $g in
                 HStack {
@@ -99,7 +99,7 @@ struct GoalAchievementView: View {
                         .strikethrough(g.isCompleted)
                 }
             }
-            Text("Tasks")
+            Text(L10n.tasks)
                 .font(.subheadline).bold()
             ForEach($goal.tasks) { $t in
                 HStack {
