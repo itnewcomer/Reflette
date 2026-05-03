@@ -581,11 +581,11 @@ struct GoalView: View {
     // 目標新規作成
     private func createGoalForMonth() {
         guard let selectedDate = selectedDate else { return }
-        let comps = Calendar.current.dateComponents([.year, .month], from: selectedDate)
+        let calendar = Calendar.current
         let newGoal = MonthlyGoal(
             id: UUID(),
-            year: comps.year ?? 2024,
-            month: comps.month ?? 1,
+            year: calendar.component(.year, from: selectedDate),
+            month: calendar.component(.month, from: selectedDate),
             excitedGoals: [],
             stretchGoals: [],
             tasks: [],
@@ -610,11 +610,9 @@ struct GoalView: View {
     }
 
     private var selectedYear: Int {
-        guard let selectedDate = selectedDate else { return 2024 }
-        return Calendar.current.component(.year, from: selectedDate)
+        Calendar.current.component(.year, from: selectedDate ?? Date())
     }
     private var selectedMonth: Int {
-        guard let selectedDate = selectedDate else { return 1 }
-        return Calendar.current.component(.month, from: selectedDate)
+        Calendar.current.component(.month, from: selectedDate ?? Date())
     }
 }
