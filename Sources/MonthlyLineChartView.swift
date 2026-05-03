@@ -76,8 +76,8 @@ struct MonthlyLineChartView: View {
               let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: selectedDate)),
               let range = calendar.range(of: .day, in: .month, for: startOfMonth)
         else { return [] }
-        return range.map { day in
-            let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth)!
+        return range.compactMap { day -> DayRating? in
+            guard let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth) else { return nil }
             let value = ratingsForDates[calendar.startOfDay(for: date)] ?? 0
             return DayRating(day: day, value: value)
         }

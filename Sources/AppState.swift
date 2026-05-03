@@ -9,6 +9,6 @@ class AppState {
     // 今月の1日
     var initialMonth: Date = {
         let comps = Calendar.current.dateComponents([.year, .month], from: Date())
-        return Calendar.current.date(from: comps)!
+        return Calendar.current.date(from: comps) ?? Date()
     }()
 }

@@ -136,8 +136,8 @@ struct ReportView: View {
         let year = calendar.component(.year, from: selectedDate)
         return (1...12).map { month in
             let components = DateComponents(year: year, month: month)
-            guard let startOfMonth = calendar.date(from: components) else { return 0 }
-            let daysInMonth = calendar.range(of: .day, in: .month, for: startOfMonth)!
+            guard let startOfMonth = calendar.date(from: components),
+                  let daysInMonth = calendar.range(of: .day, in: .month, for: startOfMonth) else { return 0 }
             let ratings = daysInMonth.compactMap { day -> Int? in
                 guard let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth) else { return nil }
                 return ratingsForDates[calendar.startOfDay(for: date)]
@@ -254,7 +254,7 @@ struct TagEmotionAnalysisView: View {
                 for tag in tags { map[tag, default: []].append(item) }
             }
         }
-        for key in map.keys { map[key] = Array(Set(map[key]!)) }
+        for key in map.keys { map[key] = Array(Set(map[key] ?? [])) }
         return map
     }
 }

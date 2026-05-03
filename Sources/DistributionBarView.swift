@@ -50,10 +50,10 @@ struct DistributionBarView: View {
         let calendar = Calendar.current
         var counts = [0, 0, 0, 0, 0]
         if reportType == .monthly, let selectedDate = selectedDate {
-            let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: selectedDate))!
-            let range = calendar.range(of: .day, in: .month, for: startOfMonth)!
+            guard let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: selectedDate)),
+                  let range = calendar.range(of: .day, in: .month, for: startOfMonth) else { return counts }
             for day in range {
-                let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth)!
+                guard let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth) else { continue }
                 let rating = ratingsForDates[calendar.startOfDay(for: date)] ?? 0
                 if (1...5).contains(rating) { counts[rating-1] += 1 }
             }
@@ -64,7 +64,7 @@ struct DistributionBarView: View {
                 if let startOfMonth = calendar.date(from: components),
                    let range = calendar.range(of: .day, in: .month, for: startOfMonth) {
                     for day in range {
-                        let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth)!
+                        guard let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth) else { continue }
                         let rating = ratingsForDates[calendar.startOfDay(for: date)] ?? 0
                         if (1...5).contains(rating) { counts[rating-1] += 1 }
                     }
