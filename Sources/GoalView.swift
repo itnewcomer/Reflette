@@ -16,6 +16,14 @@ struct GoalTask: Identifiable, Codable, Equatable {
     let id: UUID
     var title: String
     var isCompleted: Bool
+    var dueDate: Date?
+
+    init(id: UUID = UUID(), title: String, isCompleted: Bool = false, dueDate: Date? = nil) {
+        self.id = id
+        self.title = title
+        self.isCompleted = isCompleted
+        self.dueDate = dueDate
+    }
 }
 
 // --- GoalMonthSelector (Date?対応) ---
@@ -87,6 +95,109 @@ struct GoalMonthSelector: View {
     }
 }
 
+// --- 日付バッジ ---
+
+struct GoalTaskDateBadge: View {
+    let dueDate: Date?
+    let onChange: (Date?) -> Void
+
+    @State private var showPicker = false
+    @State private var pickerDate = Date()
+
+    private static let dateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = L10n.current == .ja ? "M/d" : "M/d"
+        return f
+    }()
+
+    var body: some View {
+        if let date = dueDate {
+            HStack(spacing: 2) {
+                Button {
+                    pickerDate = date
+                    showPicker = true
+                } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 10))
+                        Text(Self.dateFormatter.string(from: date))
+                            .font(.system(size: 12))
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(AppColors.cardBackgroundElevated)
+                    .cornerRadius(6)
+                    .foregroundColor(isOverdue(date) ? AppColors.zoneDown : AppColors.accent)
+                }
+                Button {
+                    onChange(nil)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(AppColors.textSecondary)
+                }
+            }
+            .sheet(isPresented: $showPicker) {
+                NavigationStack {
+                    DatePicker("", selection: $pickerDate, displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .labelsHidden()
+                        .padding()
+                        .navigationTitle(L10n.current == .ja ? "日付を選択" : "Select Date")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button(L10n.save) {
+                                    onChange(Calendar.current.startOfDay(for: pickerDate))
+                                    showPicker = false
+                                }
+                            }
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(L10n.cancel) { showPicker = false }
+                            }
+                        }
+                }
+                .presentationDetents([.medium])
+            }
+        } else {
+            Button {
+                pickerDate = Date()
+                showPicker = true
+            } label: {
+                Image(systemName: "calendar.badge.plus")
+                    .font(.system(size: 16))
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .sheet(isPresented: $showPicker) {
+                NavigationStack {
+                    DatePicker("", selection: $pickerDate, displayedComponents: .date)
+                        .datePickerStyle(.graphical)
+                        .labelsHidden()
+                        .padding()
+                        .navigationTitle(L10n.current == .ja ? "日付を選択" : "Select Date")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button(L10n.save) {
+                                    onChange(Calendar.current.startOfDay(for: pickerDate))
+                                    showPicker = false
+                                }
+                            }
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(L10n.cancel) { showPicker = false }
+                            }
+                        }
+                }
+                .presentationDetents([.medium])
+            }
+        }
+    }
+
+    private func isOverdue(_ date: Date) -> Bool {
+        Calendar.current.startOfDay(for: date) < Calendar.current.startOfDay(for: Date())
+    }
+}
+
 // --- 目標編集サブビュー ---
 
 struct GoalEditor: View {
@@ -119,6 +230,9 @@ struct GoalEditor: View {
                         .strikethrough(goalTask.isCompleted)
                         .foregroundColor(goalTask.isCompleted ? .gray : .primary)
                     Spacer()
+                    GoalTaskDateBadge(dueDate: $goalTask.wrappedValue.dueDate) { newDate in
+                        $goalTask.wrappedValue.dueDate = newDate
+                    }
                     Button(action: {
                         deleteTarget = goalTask
                         deleteCategory = .excited
@@ -156,6 +270,9 @@ struct GoalEditor: View {
                         .strikethrough(goalTask.isCompleted)
                         .foregroundColor(goalTask.isCompleted ? .gray : .primary)
                     Spacer()
+                    GoalTaskDateBadge(dueDate: $goalTask.wrappedValue.dueDate) { newDate in
+                        $goalTask.wrappedValue.dueDate = newDate
+                    }
                     Button(action: {
                         deleteTarget = goalTask
                         deleteCategory = .stretch
@@ -193,6 +310,9 @@ struct GoalEditor: View {
                         .strikethrough(task.isCompleted)
                         .foregroundColor(task.isCompleted ? .gray : .primary)
                     Spacer()
+                    GoalTaskDateBadge(dueDate: $task.wrappedValue.dueDate) { newDate in
+                        $task.wrappedValue.dueDate = newDate
+                    }
                     Button(action: {
                         deleteTarget = task
                         deleteCategory = .task
@@ -257,15 +377,132 @@ struct GoalView: View {
     var emotionDict: [String: Emotion]
 
     var body: some View {
+        Group {
+            #if targetEnvironment(macCatalyst)
+            macLayout
+            #else
+            iOSLayout
+            #endif
+        }
+        .navigationTitle(L10n.tabGoal)
+        .background(AppColors.background.ignoresSafeArea())
+        .onAppear(perform: loadGoals)
+        .onChange(of: monthlyGoals) { _, _ in saveGoals() }
+        .sheet(isPresented: $showLetterSheet) {
+            if let idx = monthlyGoals.firstIndex(where: { $0.year == selectedYear && $0.month == selectedMonth }) {
+                LetterComposeView(
+                    selectedDate: selectedDate,
+                    ratingsForDates: ratingsForDates,
+                    items: items,
+                    emotionDict: emotionDict,
+                    goal: $monthlyGoals[idx],
+                    onSave: { showLetterSheet = false }
+                )
+            }
+        }
+    }
+
+    // MARK: - Mac 2カラムレイアウト
+
+    private var macLayout: some View {
+        HStack(alignment: .top, spacing: 0) {
+            // 左: 月選択 + 進捗 + 手紙
+            ScrollView {
+                VStack(spacing: 16) {
+                    GoalMonthSelector(selectedDate: $selectedDate)
+
+                    if let goal = goalForMonth {
+                        GoalProgressView(goal: goal)
+                        macLetterSection(goal: goal)
+                    } else {
+                        Button(L10n.createGoal) { createGoalForMonth() }
+                            .buttonStyle(.borderedProminent)
+                            .tint(AppColors.accent)
+                            .padding(.top, 8)
+                    }
+                }
+                .padding(20)
+            }
+            .frame(width: 340)
+            .scrollIndicators(.hidden)
+
+            Divider()
+                .background(AppColors.cardBackgroundElevated)
+
+            // 右: 目標エディタ
+            ScrollView {
+                if let goal = goalForMonth {
+                    GoalEditor(
+                        goal: binding(for: goal),
+                        showLetterSheet: $showLetterSheet,
+                        ratingsForDates: ratingsForDates,
+                        items: items,
+                        emotionDict: emotionDict
+                    )
+                    .padding(.bottom, 40)
+                } else {
+                    VStack(spacing: 12) {
+                        Image(systemName: "target")
+                            .font(.system(size: 48))
+                            .foregroundColor(AppColors.textSecondary)
+                        Text(L10n.current == .ja ? "左パネルで月を選択して目標を作成しましょう" : "Select a month in the left panel to create goals")
+                            .font(.subheadline)
+                            .foregroundColor(AppColors.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 80)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .scrollIndicators(.hidden)
+        }
+    }
+
+    @ViewBuilder
+    private func macLetterSection(goal: MonthlyGoal) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L10n.current == .ja ? "💛 自分への手紙" : "💛 Letter to Yourself")
+                .font(.headline)
+                .foregroundColor(AppColors.textPrimary)
+            Text(L10n.letterToSelf)
+                .font(.caption)
+                .foregroundColor(AppColors.textSecondary)
+            if goal.letterToSelf.isEmpty {
+                Button {
+                    showLetterSheet = true
+                } label: {
+                    Label(L10n.current == .ja ? "手紙を書く" : "Write a letter", systemImage: "pencil.line")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(AppColors.accent)
+            } else {
+                Text(goal.letterToSelf)
+                    .font(.subheadline)
+                    .foregroundColor(AppColors.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack {
+                    Spacer()
+                    Button { showLetterSheet = true } label: {
+                        Image(systemName: "pencil")
+                    }
+                }
+            }
+        }
+        .card()
+    }
+
+    // MARK: - iOS レイアウト
+
+    private var iOSLayout: some View {
         ScrollView {
             VStack(spacing: 12) {
                 GoalMonthSelector(selectedDate: $selectedDate)
 
                 if let goal = goalForMonth {
-                    // プログレスリング（常に表示）
                     GoalProgressView(goal: goal)
 
-                    // 📋 目標一覧（折りたたみ）
                     CollapsibleSection(
                         title: L10n.current == .ja ? "📋 目標" : "📋 Goals",
                         isExpanded: expandedSection == .goals,
@@ -280,7 +517,6 @@ struct GoalView: View {
                         )
                     }
 
-                    // 💛 自分への手紙（折りたたみ）
                     CollapsibleSection(
                         title: L10n.current == .ja ? "💛 自分への手紙" : "💛 Letter to Yourself",
                         isExpanded: expandedSection == .letter,
@@ -307,9 +543,7 @@ struct GoalView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 HStack {
                                     Spacer()
-                                    Button {
-                                        showLetterSheet = true
-                                    } label: {
+                                    Button { showLetterSheet = true } label: {
                                         Image(systemName: "pencil")
                                     }
                                 }
@@ -317,35 +551,15 @@ struct GoalView: View {
                         }
                     }
                 } else {
-                    Button(L10n.createGoal) {
-                        createGoalForMonth()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(AppColors.accent)
+                    Button(L10n.createGoal) { createGoalForMonth() }
+                        .buttonStyle(.borderedProminent)
+                        .tint(AppColors.accent)
                 }
             }
             .padding(.horizontal)
             .padding(.bottom, 40)
             .padding()
             .macContentFrame()
-        }
-        .navigationTitle(L10n.tabGoal)
-        .background(AppColors.background.ignoresSafeArea())
-        .onAppear(perform: loadGoals)
-        .onChange(of: monthlyGoals) { _, _ in
-            saveGoals()
-        }
-        .sheet(isPresented: $showLetterSheet) {
-            if let idx = monthlyGoals.firstIndex(where: { $0.year == selectedYear && $0.month == selectedMonth }) {
-                LetterComposeView(
-                    selectedDate: selectedDate,
-                    ratingsForDates: ratingsForDates,
-                    items: items,
-                    emotionDict: emotionDict,
-                    goal: $monthlyGoals[idx],
-                    onSave: { showLetterSheet = false }
-                )
-            }
         }
     }
 

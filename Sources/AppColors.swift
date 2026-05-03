@@ -78,7 +78,7 @@ extension View {
     /// Mac Catalyst では最大幅を制限して中央寄せ、iOSではそのまま
     func macContentFrame() -> some View {
         #if targetEnvironment(macCatalyst)
-        self.frame(maxWidth: 720).frame(maxWidth: .infinity)
+        self.frame(maxWidth: 1100).frame(maxWidth: .infinity)
         #else
         self
         #endif

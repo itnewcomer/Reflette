@@ -38,6 +38,37 @@ struct HomeCalendarView: View {
         return goal.letterToSelf.isEmpty
     }
 
+    private struct GoalTaskEntry {
+        let task: GoalTask
+        let icon: String
+    }
+
+    private var goalTasksForSelectedDate: [GoalTaskEntry] {
+        guard let selectedDate = appState.selectedDate else { return [] }
+        let data = UserDefaults.standard.data(forKey: "monthlyGoals") ?? Data()
+        guard let goals = try? JSONDecoder().decode([MonthlyGoal].self, from: data) else { return [] }
+        let cal = Calendar.current
+        var result: [GoalTaskEntry] = []
+        for goal in goals {
+            for t in goal.excitedGoals {
+                if let d = t.dueDate, cal.isDate(d, inSameDayAs: selectedDate) {
+                    result.append(GoalTaskEntry(task: t, icon: "🎯"))
+                }
+            }
+            for t in goal.stretchGoals {
+                if let d = t.dueDate, cal.isDate(d, inSameDayAs: selectedDate) {
+                    result.append(GoalTaskEntry(task: t, icon: "💪"))
+                }
+            }
+            for t in goal.tasks {
+                if let d = t.dueDate, cal.isDate(d, inSameDayAs: selectedDate) {
+                    result.append(GoalTaskEntry(task: t, icon: "✅"))
+                }
+            }
+        }
+        return result
+    }
+
     private var selectedItem: Item? {
         guard let selectedDate = appState.selectedDate else { return nil }
         return items.first { Calendar.current.isDate($0.timestamp, inSameDayAs: selectedDate) }
@@ -70,106 +101,18 @@ struct HomeCalendarView: View {
         ]
     }
 
+    // MARK: - Body
+
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                RatingScaleView()
-                    .padding(.top, 2)                // カレンダー表示
-                RefletteCalendarView(
-                    selectedDate: Binding(
-                        get: { appState.selectedDate },
-                        set: { appState.selectedDate = $0 }
-                    ),
-                    displayedMonth: Binding(
-                        get: { appState.initialMonth },
-                        set: { appState.initialMonth = $0 }
-                    ),
-                    ratingsForDates: ratingsForDates,
-                    onDoubleTap: { showEditor = true }
-                )
-
-                // セルフコンパッション
-                SelfCompassionView(items: items, selectedDate: appState.selectedDate)
-
-                // 月初リマインド: 目標未設定
-                if shouldShowGoalReminder {
-                    Button {
-                        appState.selectedTab = 2
-                    } label: {
-                        HStack(spacing: 8) {
-                            Text("🎯")
-                            Text(L10n.current == .ja ? "今月の目標を設定しましょう" : "Set this month's goals")
-                                .font(.subheadline)
-                                .foregroundColor(AppColors.textPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(AppColors.textSecondary)
-                        }
-                    }
-                    .card()
-                }
-
-                // 月末リマインド: 振り返り
-                if shouldShowReflectReminder {
-                    Button {
-                        appState.selectedTab = 2
-                    } label: {
-                        HStack(spacing: 8) {
-                            Text("💛")
-                            Text(L10n.current == .ja ? "今月を振り返って、自分に手紙を書きませんか？" : "Reflect on this month and write yourself a letter")
-                                .font(.subheadline)
-                                .foregroundColor(AppColors.textPrimary)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(AppColors.textSecondary)
-                        }
-                    }
-                    .card()
-                }
-
-                // 日付タップで記録ボタン or 詳細表示
-                if let item = selectedItem {
-                    CalendarDetailView(
-                        item: item,
-                        selectedEmotion: $selectedEmotion,
-                        groupMatrix: groupMatrix,
-                        emotionColor: emotionColor,
-                        ratingEmoji: ratingEmoji,
-                        showEditor: $showEditor,
-                        showDeleteAlert: $showDeleteAlert
-                    )
-                    .card()
-                } else if appState.selectedDate != nil {
-                    VStack(spacing: 8) {
-                        Text(L10n.current == .ja ? "この日の記録はまだありません" : "No record for this day")
-                            .font(.subheadline)
-                            .foregroundColor(AppColors.textSecondary)
-                        Button {
-                            showEditor = true
-                        } label: {
-                            Label(
-                                L10n.current == .ja ? "記録する" : "Record",
-                                systemImage: "plus.circle.fill"
-                            )
-                            .font(.subheadline)
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(AppColors.accent)
-                    }
-                    .card()
-                }
-            }
-            .padding(.horizontal)
-            .macContentFrame()
+        Group {
+            #if targetEnvironment(macCatalyst)
+            macLayout
+            #else
+            iOSLayout
+            #endif
         }
-        .scrollIndicators(.hidden)
-        .ignoresSafeArea(edges: .top)
         .background(AppColors.background.ignoresSafeArea())
         .ignoresSafeArea(.keyboard, edges: .bottom)
-        // 編集シート
         .sheet(isPresented: $showEditor) {
             NavigationStack {
                 RecordEditorView(
@@ -183,7 +126,6 @@ struct HomeCalendarView: View {
                 .environment(\.modelContext, modelContext)
             }
         }
-        // 削除アラート
         .alert(L10n.deleteConfirmTitle, isPresented: $showDeleteAlert) {
             Button(L10n.delete, role: .destructive) {
                 if let item = selectedItem {
@@ -200,6 +142,225 @@ struct HomeCalendarView: View {
             Text(L10n.deleteConfirmMessage)
         }
         .errorAlert($deleteError)
+    }
+
+    // MARK: - Mac 2カラムレイアウト
+
+    private var macLayout: some View {
+        HStack(alignment: .top, spacing: 0) {
+            // 左: カレンダー
+            ScrollView {
+                VStack(spacing: 0) {
+                    RatingScaleView()
+                        .padding(.top, 2)
+                    RefletteCalendarView(
+                        selectedDate: Binding(
+                            get: { appState.selectedDate },
+                            set: { appState.selectedDate = $0 }
+                        ),
+                        displayedMonth: Binding(
+                            get: { appState.initialMonth },
+                            set: { appState.initialMonth = $0 }
+                        ),
+                        ratingsForDates: ratingsForDates,
+                        onDoubleTap: { showEditor = true }
+                    )
+                    SelfCompassionView(items: items, selectedDate: appState.selectedDate)
+                }
+                .padding(.horizontal)
+            }
+            .frame(width: 420)
+            .scrollIndicators(.hidden)
+
+            Divider()
+                .background(AppColors.cardBackgroundElevated)
+
+            // 右: 詳細パネル
+            ScrollView {
+                VStack(spacing: 12) {
+                    if shouldShowGoalReminder {
+                        reminderCard(
+                            icon: "🎯",
+                            text: L10n.current == .ja ? "今月の目標を設定しましょう" : "Set this month's goals"
+                        ) { appState.selectedTab = 2 }
+                    }
+                    if shouldShowReflectReminder {
+                        reminderCard(
+                            icon: "💛",
+                            text: L10n.current == .ja ? "今月を振り返って、自分に手紙を書きませんか？" : "Reflect on this month and write yourself a letter"
+                        ) { appState.selectedTab = 2 }
+                    }
+
+                    let goalTasks = goalTasksForSelectedDate
+                    if !goalTasks.isEmpty {
+                        goalTasksCard(goalTasks)
+                    }
+
+                    if let item = selectedItem {
+                        CalendarDetailView(
+                            item: item,
+                            selectedEmotion: $selectedEmotion,
+                            groupMatrix: groupMatrix,
+                            emotionColor: emotionColor,
+                            ratingEmoji: ratingEmoji,
+                            showEditor: $showEditor,
+                            showDeleteAlert: $showDeleteAlert
+                        )
+                        .card()
+                    } else if appState.selectedDate != nil {
+                        recordPromptCard
+                    } else {
+                        VStack(spacing: 12) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 48))
+                                .foregroundColor(AppColors.textSecondary)
+                            Text(L10n.current == .ja ? "カレンダーの日付を選択してください" : "Select a date on the calendar")
+                                .font(.subheadline)
+                                .foregroundColor(AppColors.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 80)
+                    }
+                }
+                .padding(20)
+            }
+            .frame(maxWidth: .infinity)
+            .scrollIndicators(.hidden)
+        }
+        .ignoresSafeArea(edges: .top)
+    }
+
+    // MARK: - iOS レイアウト
+
+    private var iOSLayout: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                RatingScaleView()
+                    .padding(.top, 2)
+                RefletteCalendarView(
+                    selectedDate: Binding(
+                        get: { appState.selectedDate },
+                        set: { appState.selectedDate = $0 }
+                    ),
+                    displayedMonth: Binding(
+                        get: { appState.initialMonth },
+                        set: { appState.initialMonth = $0 }
+                    ),
+                    ratingsForDates: ratingsForDates,
+                    onDoubleTap: { showEditor = true }
+                )
+
+                SelfCompassionView(items: items, selectedDate: appState.selectedDate)
+
+                if shouldShowGoalReminder {
+                    reminderCard(
+                        icon: "🎯",
+                        text: L10n.current == .ja ? "今月の目標を設定しましょう" : "Set this month's goals"
+                    ) { appState.selectedTab = 2 }
+                }
+                if shouldShowReflectReminder {
+                    reminderCard(
+                        icon: "💛",
+                        text: L10n.current == .ja ? "今月を振り返って、自分に手紙を書きませんか？" : "Reflect on this month and write yourself a letter"
+                    ) { appState.selectedTab = 2 }
+                }
+
+                let goalTasks = goalTasksForSelectedDate
+                if !goalTasks.isEmpty {
+                    goalTasksCard(goalTasks)
+                }
+
+                if let item = selectedItem {
+                    CalendarDetailView(
+                        item: item,
+                        selectedEmotion: $selectedEmotion,
+                        groupMatrix: groupMatrix,
+                        emotionColor: emotionColor,
+                        ratingEmoji: ratingEmoji,
+                        showEditor: $showEditor,
+                        showDeleteAlert: $showDeleteAlert
+                    )
+                    .card()
+                } else if appState.selectedDate != nil {
+                    recordPromptCard
+                }
+            }
+            .padding(.horizontal)
+            .macContentFrame()
+        }
+        .scrollIndicators(.hidden)
+        .ignoresSafeArea(edges: .top)
+    }
+
+    // MARK: - 共通サブビュー
+
+    @ViewBuilder
+    private func reminderCard(icon: String, text: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                Text(icon)
+                Text(text)
+                    .font(.subheadline)
+                    .foregroundColor(AppColors.textPrimary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(AppColors.textSecondary)
+            }
+        }
+        .card()
+    }
+
+    @ViewBuilder
+    private func goalTasksCard(_ tasks: [GoalTaskEntry]) -> some View {
+        Button { appState.selectedTab = 2 } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(L10n.current == .ja ? "📋 この日のタスク" : "📋 Tasks for this day")
+                        .font(.subheadline).bold()
+                        .foregroundColor(AppColors.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundColor(AppColors.textSecondary)
+                }
+                ForEach(tasks, id: \.task.id) { entry in
+                    HStack(spacing: 6) {
+                        Text(entry.icon).font(.system(size: 11))
+                        Image(systemName: entry.task.isCompleted ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 13))
+                            .foregroundColor(entry.task.isCompleted ? AppColors.success : AppColors.textSecondary)
+                        Text(entry.task.title)
+                            .font(.subheadline)
+                            .strikethrough(entry.task.isCompleted)
+                            .foregroundColor(entry.task.isCompleted ? AppColors.textSecondary : AppColors.textPrimary)
+                        Spacer()
+                    }
+                }
+            }
+        }
+        .card()
+    }
+
+    private var recordPromptCard: some View {
+        VStack(spacing: 8) {
+            Text(L10n.current == .ja ? "この日の記録はまだありません" : "No record for this day")
+                .font(.subheadline)
+                .foregroundColor(AppColors.textSecondary)
+            Button {
+                showEditor = true
+            } label: {
+                Label(
+                    L10n.current == .ja ? "記録する" : "Record",
+                    systemImage: "plus.circle.fill"
+                )
+                .font(.subheadline)
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(AppColors.accent)
+        }
+        .card()
     }
 }
 

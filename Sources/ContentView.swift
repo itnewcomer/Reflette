@@ -69,13 +69,19 @@ struct ContentView: View {
 
     private var macLayout: some View {
         NavigationSplitView {
-            List(0..<tabs.count, id: \.self, selection: $appState.selectedTab) { i in
+            List(
+                0..<tabs.count,
+                id: \.self,
+                selection: Binding<Int?>(
+                    get: { appState.selectedTab },
+                    set: { if let v = $0 { appState.selectedTab = v } }
+                )
+            ) { i in
                 Label(
                     L10n.current == .ja ? tabs[i].labelJa : tabs[i].labelEn,
                     systemImage: tabs[i].icon
                 )
                 .tag(i)
-                .foregroundColor(appState.selectedTab == i ? AppColors.accent : AppColors.textPrimary)
             }
             .listStyle(.sidebar)
             .background(AppColors.background)
@@ -83,7 +89,7 @@ struct ContentView: View {
             .navigationTitle("Reflette")
         } detail: {
             tabContent(for: appState.selectedTab)
-                .frame(minWidth: 500)
+                .frame(minWidth: 700)
         }
         .preferredColorScheme(.dark)
         .sheet(isPresented: $showGuide) { GuideView { showFirstRecord = true } }

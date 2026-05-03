@@ -31,5 +31,8 @@ struct RefletteApp: App {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        #if targetEnvironment(macCatalyst)
+        .defaultSize(width: 1100, height: 780)
+        #endif
     }
 }
