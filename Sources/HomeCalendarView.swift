@@ -144,29 +144,79 @@ struct HomeCalendarView: View {
         .errorAlert($deleteError)
     }
 
+    // MARK: - 共通ブロック（Mac/iOS で共有）
+
+    @ViewBuilder
+    private var calendarBlock: some View {
+        RatingScaleView()
+            .padding(.top, 2)
+        RefletteCalendarView(
+            selectedDate: Binding(
+                get: { appState.selectedDate },
+                set: { appState.selectedDate = $0 }
+            ),
+            displayedMonth: Binding(
+                get: { appState.initialMonth },
+                set: { appState.initialMonth = $0 }
+            ),
+            ratingsForDates: ratingsForDates
+        )
+        SelfCompassionView(items: items, selectedDate: appState.selectedDate)
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        if shouldShowGoalReminder {
+            reminderCard(icon: "🎯", text: L10n.setGoalThisMonth) {
+                appState.selectedTab = 2
+            }
+        }
+        if shouldShowReflectReminder {
+            reminderCard(icon: "💛", text: L10n.reflectThisMonth) {
+                appState.selectedTab = 2
+            }
+        }
+
+        let goalTasks = goalTasksForSelectedDate
+        if !goalTasks.isEmpty {
+            goalTasksCard(goalTasks)
+        }
+
+        if let item = selectedItem {
+            CalendarDetailView(
+                item: item,
+                selectedEmotion: $selectedEmotion,
+                groupMatrix: groupMatrix,
+                emotionColor: emotionColor,
+                ratingEmoji: ratingEmoji,
+                showEditor: $showEditor,
+                showDeleteAlert: $showDeleteAlert
+            )
+            .card()
+        } else if appState.selectedDate != nil {
+            recordPromptCard
+        } else {
+            // selectedDate が nil の状態（Mac でユーザが手動解除した時のみ実質的に発火）
+            VStack(spacing: 12) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 48))
+                    .foregroundColor(AppColors.textSecondary)
+                Text(L10n.selectDatePrompt)
+                    .font(.subheadline)
+                    .foregroundColor(AppColors.textSecondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 80)
+        }
+    }
+
     // MARK: - Mac 2カラムレイアウト
 
     private var macLayout: some View {
         HStack(alignment: .top, spacing: 0) {
-            // 左: カレンダー
             ScrollView {
-                VStack(spacing: 0) {
-                    RatingScaleView()
-                        .padding(.top, 2)
-                    RefletteCalendarView(
-                        selectedDate: Binding(
-                            get: { appState.selectedDate },
-                            set: { appState.selectedDate = $0 }
-                        ),
-                        displayedMonth: Binding(
-                            get: { appState.initialMonth },
-                            set: { appState.initialMonth = $0 }
-                        ),
-                        ratingsForDates: ratingsForDates
-                    )
-                    SelfCompassionView(items: items, selectedDate: appState.selectedDate)
-                }
-                .padding(.horizontal)
+                VStack(spacing: 0) { calendarBlock }
+                    .padding(.horizontal)
             }
             .frame(width: 420)
             .scrollIndicators(.hidden)
@@ -174,54 +224,9 @@ struct HomeCalendarView: View {
             Divider()
                 .background(AppColors.cardBackgroundElevated)
 
-            // 右: 詳細パネル
             ScrollView {
-                VStack(spacing: 12) {
-                    if shouldShowGoalReminder {
-                        reminderCard(
-                            icon: "🎯",
-                            text: L10n.setGoalThisMonth
-                        ) { appState.selectedTab = 2 }
-                    }
-                    if shouldShowReflectReminder {
-                        reminderCard(
-                            icon: "💛",
-                            text: L10n.reflectThisMonth
-                        ) { appState.selectedTab = 2 }
-                    }
-
-                    let goalTasks = goalTasksForSelectedDate
-                    if !goalTasks.isEmpty {
-                        goalTasksCard(goalTasks)
-                    }
-
-                    if let item = selectedItem {
-                        CalendarDetailView(
-                            item: item,
-                            selectedEmotion: $selectedEmotion,
-                            groupMatrix: groupMatrix,
-                            emotionColor: emotionColor,
-                            ratingEmoji: ratingEmoji,
-                            showEditor: $showEditor,
-                            showDeleteAlert: $showDeleteAlert
-                        )
-                        .card()
-                    } else if appState.selectedDate != nil {
-                        recordPromptCard
-                    } else {
-                        VStack(spacing: 12) {
-                            Image(systemName: "calendar")
-                                .font(.system(size: 48))
-                                .foregroundColor(AppColors.textSecondary)
-                            Text(L10n.selectDatePrompt)
-                                .font(.subheadline)
-                                .foregroundColor(AppColors.textSecondary)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.top, 80)
-                    }
-                }
-                .padding(20)
+                VStack(spacing: 12) { mainContent }
+                    .padding(20)
             }
             .frame(maxWidth: .infinity)
             .scrollIndicators(.hidden)
@@ -234,54 +239,8 @@ struct HomeCalendarView: View {
     private var iOSLayout: some View {
         ScrollView {
             VStack(spacing: 0) {
-                RatingScaleView()
-                    .padding(.top, 2)
-                RefletteCalendarView(
-                    selectedDate: Binding(
-                        get: { appState.selectedDate },
-                        set: { appState.selectedDate = $0 }
-                    ),
-                    displayedMonth: Binding(
-                        get: { appState.initialMonth },
-                        set: { appState.initialMonth = $0 }
-                    ),
-                    ratingsForDates: ratingsForDates
-                )
-
-                SelfCompassionView(items: items, selectedDate: appState.selectedDate)
-
-                if shouldShowGoalReminder {
-                    reminderCard(
-                        icon: "🎯",
-                        text: L10n.setGoalThisMonth
-                    ) { appState.selectedTab = 2 }
-                }
-                if shouldShowReflectReminder {
-                    reminderCard(
-                        icon: "💛",
-                        text: L10n.reflectThisMonth
-                    ) { appState.selectedTab = 2 }
-                }
-
-                let goalTasks = goalTasksForSelectedDate
-                if !goalTasks.isEmpty {
-                    goalTasksCard(goalTasks)
-                }
-
-                if let item = selectedItem {
-                    CalendarDetailView(
-                        item: item,
-                        selectedEmotion: $selectedEmotion,
-                        groupMatrix: groupMatrix,
-                        emotionColor: emotionColor,
-                        ratingEmoji: ratingEmoji,
-                        showEditor: $showEditor,
-                        showDeleteAlert: $showDeleteAlert
-                    )
-                    .card()
-                } else if appState.selectedDate != nil {
-                    recordPromptCard
-                }
+                calendarBlock
+                mainContent
             }
             .padding(.horizontal)
             .macContentFrame()

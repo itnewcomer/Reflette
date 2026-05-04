@@ -442,36 +442,42 @@ struct GoalView: View {
         }
     }
 
+    /// 手紙セクションの中身（キャプション + 書く/表示ボタン）。Mac/iOS 両方で共有
+    @ViewBuilder
+    private func letterBody(goal: MonthlyGoal) -> some View {
+        Text(L10n.letterToSelf)
+            .font(.caption)
+            .foregroundColor(AppColors.textSecondary)
+        if goal.letterToSelf.isEmpty {
+            Button {
+                showLetterSheet = true
+            } label: {
+                Label(L10n.writeLetter, systemImage: "pencil.line")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(AppColors.accent)
+        } else {
+            Text(goal.letterToSelf)
+                .font(.subheadline)
+                .foregroundColor(AppColors.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack {
+                Spacer()
+                Button { showLetterSheet = true } label: {
+                    Image(systemName: "pencil")
+                }
+            }
+        }
+    }
+
     @ViewBuilder
     private func macLetterSection(goal: MonthlyGoal) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(L10n.letterToSelfHeader)
                 .font(.headline)
                 .foregroundColor(AppColors.textPrimary)
-            Text(L10n.letterToSelf)
-                .font(.caption)
-                .foregroundColor(AppColors.textSecondary)
-            if goal.letterToSelf.isEmpty {
-                Button {
-                    showLetterSheet = true
-                } label: {
-                    Label(L10n.writeLetter, systemImage: "pencil.line")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(AppColors.accent)
-            } else {
-                Text(goal.letterToSelf)
-                    .font(.subheadline)
-                    .foregroundColor(AppColors.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                HStack {
-                    Spacer()
-                    Button { showLetterSheet = true } label: {
-                        Image(systemName: "pencil")
-                    }
-                }
-            }
+            letterBody(goal: goal)
         }
         .card()
     }
@@ -506,31 +512,7 @@ struct GoalView: View {
                         onTap: { expandedSection = expandedSection == .letter ? nil : .letter }
                     ) {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(L10n.letterToSelf)
-                                .font(.caption)
-                                .foregroundColor(AppColors.textSecondary)
-                            if goal.letterToSelf.isEmpty {
-                                Button {
-                                    showLetterSheet = true
-                                } label: {
-                                    Label(L10n.writeLetter,
-                                          systemImage: "pencil.line")
-                                        .frame(maxWidth: .infinity)
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .tint(AppColors.accent)
-                            } else {
-                                Text(goal.letterToSelf)
-                                    .font(.subheadline)
-                                    .foregroundColor(AppColors.textPrimary)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                HStack {
-                                    Spacer()
-                                    Button { showLetterSheet = true } label: {
-                                        Image(systemName: "pencil")
-                                    }
-                                }
-                            }
+                            letterBody(goal: goal)
                         }
                     }
                 } else {
