@@ -22,9 +22,8 @@ Sources/
   RefletteApp.swift          # エントリポイント
   AppColors.swift            # カラーパレット
   AppState.swift             # グローバル状態
-  Models.swift               # SwiftDataモデル
+  Item.swift                 # SwiftDataモデル（Item / EmotionRecord / GoalTask 等）
   L10n.swift                 # ローカライズ
-  Item.swift                 # 基本データ型
   ContentView.swift          # メインナビゲーション
   HomeCalendarView.swift     # ホームカレンダー
   RefletteCalendarView.swift # 振り返りカレンダー

@@ -433,9 +433,3 @@ struct CalendarDetailView: View {
     }
 }
 
-private var monthYearFormatter: DateFormatter {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "ja_JP")
-    formatter.dateFormat = L10n.current == .ja ? "yyyy年 M月" : "MMMM yyyy"
-    return formatter
-}
