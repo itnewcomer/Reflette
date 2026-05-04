@@ -62,6 +62,14 @@ Reflette/
 - 日英対応
 - Mac対応 (Designed for iPad)
 
+### v1.0.1 ✅ タスク期限日 + 安定化
+- 🎯 目標タスクに期限日を設定可能（GoalTask に dueDate 追加）
+- 📋 期限日付きタスクをホームカレンダーの該当日に自動表示
+- 🖥️ Mac Catalyst で HomeCalendarView / GoalView を 2カラム化
+- 🛡️ force unwrap / 2024 固定フォールバック等の潜在バグを除去
+- 🧪 ユニットテスト土台（DayRule / MonthlyGoal Codable / EmotionRecord 計 20 件）
+- 🧹 L10n / タグ regex / DatePicker シート / iOS-Mac レイアウトの重複を整理
+
 ### v1.1 🏥 HealthKit連携
 - 睡眠時間 × 気分の相関分析
 - 歩数 × 気分の相関分析

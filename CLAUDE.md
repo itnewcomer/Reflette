@@ -53,7 +53,12 @@ Sources/
   StarRatingView.swift
   TimeSlot.swift
   ErrorAlert.swift
+  TagParser.swift              # ハッシュタグ抽出ユーティリティ
 Resources/
+Tests/
+  ItemTests.swift              # Item / EmotionRecord / tag regex
+  DayRuleTests.swift           # 月末クランプ・nthWeekday・Codable
+  MonthlyGoalCodableTests.swift # dueDate 後方互換・ラウンドトリップ
 docs/
 ```
 
@@ -62,6 +67,22 @@ docs/
 - Xcodeプロジェクト名は `Reflette.xcodeproj`（フォルダ名は `Memento`）
 - XcodeGen使用: 変更後は `xcodegen generate`
 - コミットに `Co-Authored-By:` 行は入れない
+- リポジトリは GitHub 上で `itnewcomer/Reflette` にリネーム済み（旧 `Memento` URL は redirect）
+
+## 開発コマンド
+
+```bash
+# プロジェクト再生成（project.yml 変更後）
+xcodegen generate
+
+# ビルド検証
+xcodebuild -project Reflette.xcodeproj -scheme Reflette \
+  -sdk iphonesimulator -configuration Debug build
+
+# テスト実行（OS バージョンは環境に応じて変える）
+xcodebuild test -project Reflette.xcodeproj -scheme Reflette \
+  -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4'
+```
 
 ## モデル分担（Ops / Sonnet）
 
@@ -91,4 +112,8 @@ docs/
   - バグだが優先度低めで次回まとめて対応するもの
 - **本文に含める**: 問題 / 影響 / 修正案 / 関連ファイル（行番号 + シンボル名を併記。コード変更で行はズレる前提）
 - **ラベル**: `bug` / `enhancement` を使い分け
-- **一覧確認**: `gh issue list --repo itnewcomer/Memento`
+- **一覧確認**: `gh issue list --repo itnewcomer/Reflette`
+
+## 持ち越し中の大きな宿題
+
+- **#22 MonthlyGoal を SwiftData 化**: 現状 `MonthlyGoal` / `GoalTask` は UserDefaults JSON 保存。HomeCalendarView の毎フレーム JSONDecode、二重状態管理、バックアップ漏れ、iCloud 同期障壁の根本原因。次バージョンで対応予定。設計案・移行戦略は Issue #22 本文を参照
