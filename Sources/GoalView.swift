@@ -159,7 +159,7 @@ struct GoalTaskDateBadge: View {
                 .datePickerStyle(.graphical)
                 .labelsHidden()
                 .padding()
-                .navigationTitle(L10n.current == .ja ? "日付を選択" : "Select Date")
+                .navigationTitle(L10n.selectDate)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
@@ -324,11 +324,11 @@ struct GoalEditor: View {
         }
         .padding()
         .confirmationDialog(
-            L10n.current == .ja ? "削除しますか？" : "Delete this item?",
+            L10n.deleteItemConfirmTitle,
             isPresented: Binding(get: { deleteTarget != nil }, set: { if !$0 { deleteTarget = nil } }),
             titleVisibility: .visible
         ) {
-            Button(L10n.current == .ja ? "削除" : "Delete", role: .destructive) {
+            Button(L10n.delete, role: .destructive) {
                 guard let target = deleteTarget, let category = deleteCategory else { return }
                 switch category {
                 case .excited: goal.excitedGoals.removeAll { $0.id == target.id }
@@ -337,7 +337,7 @@ struct GoalEditor: View {
                 }
                 deleteTarget = nil
             }
-            Button(L10n.current == .ja ? "キャンセル" : "Cancel", role: .cancel) {
+            Button(L10n.cancel, role: .cancel) {
                 deleteTarget = nil
             }
         }
@@ -428,7 +428,7 @@ struct GoalView: View {
                         Image(systemName: "target")
                             .font(.system(size: 48))
                             .foregroundColor(AppColors.textSecondary)
-                        Text(L10n.current == .ja ? "左パネルで月を選択して目標を作成しましょう" : "Select a month in the left panel to create goals")
+                        Text(L10n.selectMonthInLeftPanel)
                             .font(.subheadline)
                             .foregroundColor(AppColors.textSecondary)
                             .multilineTextAlignment(.center)
@@ -445,7 +445,7 @@ struct GoalView: View {
     @ViewBuilder
     private func macLetterSection(goal: MonthlyGoal) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.current == .ja ? "💛 自分への手紙" : "💛 Letter to Yourself")
+            Text(L10n.letterToSelfHeader)
                 .font(.headline)
                 .foregroundColor(AppColors.textPrimary)
             Text(L10n.letterToSelf)
@@ -455,7 +455,7 @@ struct GoalView: View {
                 Button {
                     showLetterSheet = true
                 } label: {
-                    Label(L10n.current == .ja ? "手紙を書く" : "Write a letter", systemImage: "pencil.line")
+                    Label(L10n.writeLetter, systemImage: "pencil.line")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -487,7 +487,7 @@ struct GoalView: View {
                     GoalProgressView(goal: goal)
 
                     CollapsibleSection(
-                        title: L10n.current == .ja ? "📋 目標" : "📋 Goals",
+                        title: L10n.goalsHeader,
                         isExpanded: expandedSection == .goals,
                         onTap: { expandedSection = expandedSection == .goals ? nil : .goals }
                     ) {
@@ -501,7 +501,7 @@ struct GoalView: View {
                     }
 
                     CollapsibleSection(
-                        title: L10n.current == .ja ? "💛 自分への手紙" : "💛 Letter to Yourself",
+                        title: L10n.letterToSelfHeader,
                         isExpanded: expandedSection == .letter,
                         onTap: { expandedSection = expandedSection == .letter ? nil : .letter }
                     ) {
@@ -513,7 +513,7 @@ struct GoalView: View {
                                 Button {
                                     showLetterSheet = true
                                 } label: {
-                                    Label(L10n.current == .ja ? "手紙を書く" : "Write a letter",
+                                    Label(L10n.writeLetter,
                                           systemImage: "pencil.line")
                                         .frame(maxWidth: .infinity)
                                 }

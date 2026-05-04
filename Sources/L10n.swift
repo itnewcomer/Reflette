@@ -179,4 +179,19 @@ struct L10n {
     static var date: String { current == .ja ? "日付" : "Date" }
     static var time: String { current == .ja ? "時刻" : "Time" }
     static var monthlyReview: String { current == .ja ? "今月の振り返り" : "Monthly Review" }
+
+    // MARK: - 振り返り画面 / ホーム
+    static var setGoalThisMonth: String { current == .ja ? "今月の目標を設定しましょう" : "Set this month's goals" }
+    static var reflectThisMonth: String { current == .ja ? "今月を振り返って、自分に手紙を書きませんか？" : "Reflect on this month and write yourself a letter" }
+    static var tasksForDay: String { current == .ja ? "📋 この日のタスク" : "📋 Tasks for this day" }
+    static var noRecordForDay: String { current == .ja ? "この日の記録はまだありません" : "No record for this day" }
+    static var recordAction: String { current == .ja ? "記録する" : "Record" }
+    static var selectDatePrompt: String { current == .ja ? "カレンダーの日付を選択してください" : "Select a date on the calendar" }
+    static var deleteFailed: String { current == .ja ? "削除に失敗" : "Delete failed" }
+    static var selectDate: String { current == .ja ? "日付を選択" : "Select Date" }
+    static var deleteItemConfirmTitle: String { current == .ja ? "削除しますか？" : "Delete this item?" }
+    static var letterToSelfHeader: String { current == .ja ? "💛 自分への手紙" : "💛 Letter to Yourself" }
+    static var writeLetter: String { current == .ja ? "手紙を書く" : "Write a letter" }
+    static var goalsHeader: String { current == .ja ? "📋 目標" : "📋 Goals" }
+    static var selectMonthInLeftPanel: String { current == .ja ? "左パネルで月を選択して目標を作成しましょう" : "Select a month in the left panel to create goals" }
 }

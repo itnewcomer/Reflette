@@ -133,7 +133,7 @@ struct HomeCalendarView: View {
                     do {
                         try modelContext.save()
                     } catch {
-                        deleteError = "\(L10n.current == .ja ? "削除に失敗" : "Delete failed"): \(error.localizedDescription)"
+                        deleteError = "\(L10n.deleteFailed): \(error.localizedDescription)"
                     }
                 }
             }
@@ -181,13 +181,13 @@ struct HomeCalendarView: View {
                     if shouldShowGoalReminder {
                         reminderCard(
                             icon: "🎯",
-                            text: L10n.current == .ja ? "今月の目標を設定しましょう" : "Set this month's goals"
+                            text: L10n.setGoalThisMonth
                         ) { appState.selectedTab = 2 }
                     }
                     if shouldShowReflectReminder {
                         reminderCard(
                             icon: "💛",
-                            text: L10n.current == .ja ? "今月を振り返って、自分に手紙を書きませんか？" : "Reflect on this month and write yourself a letter"
+                            text: L10n.reflectThisMonth
                         ) { appState.selectedTab = 2 }
                     }
 
@@ -214,7 +214,7 @@ struct HomeCalendarView: View {
                             Image(systemName: "calendar")
                                 .font(.system(size: 48))
                                 .foregroundColor(AppColors.textSecondary)
-                            Text(L10n.current == .ja ? "カレンダーの日付を選択してください" : "Select a date on the calendar")
+                            Text(L10n.selectDatePrompt)
                                 .font(.subheadline)
                                 .foregroundColor(AppColors.textSecondary)
                         }
@@ -255,13 +255,13 @@ struct HomeCalendarView: View {
                 if shouldShowGoalReminder {
                     reminderCard(
                         icon: "🎯",
-                        text: L10n.current == .ja ? "今月の目標を設定しましょう" : "Set this month's goals"
+                        text: L10n.setGoalThisMonth
                     ) { appState.selectedTab = 2 }
                 }
                 if shouldShowReflectReminder {
                     reminderCard(
                         icon: "💛",
-                        text: L10n.current == .ja ? "今月を振り返って、自分に手紙を書きませんか？" : "Reflect on this month and write yourself a letter"
+                        text: L10n.reflectThisMonth
                     ) { appState.selectedTab = 2 }
                 }
 
@@ -316,7 +316,7 @@ struct HomeCalendarView: View {
         Button { appState.selectedTab = 2 } label: {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text(L10n.current == .ja ? "📋 この日のタスク" : "📋 Tasks for this day")
+                    Text(L10n.tasksForDay)
                         .font(.subheadline).bold()
                         .foregroundColor(AppColors.textPrimary)
                     Spacer()
@@ -344,14 +344,14 @@ struct HomeCalendarView: View {
 
     private var recordPromptCard: some View {
         VStack(spacing: 8) {
-            Text(L10n.current == .ja ? "この日の記録はまだありません" : "No record for this day")
+            Text(L10n.noRecordForDay)
                 .font(.subheadline)
                 .foregroundColor(AppColors.textSecondary)
             Button {
                 showEditor = true
             } label: {
                 Label(
-                    L10n.current == .ja ? "記録する" : "Record",
+                    L10n.recordAction,
                     systemImage: "plus.circle.fill"
                 )
                 .font(.subheadline)

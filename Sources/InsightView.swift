@@ -51,10 +51,9 @@ struct InsightView: View {
             let diff = currentAvg - prevAvg
             if abs(diff) >= 0.3 {
                 let arrow = diff > 0 ? "📈" : "📉"
-                let direction = diff > 0 ? (L10n.current == .ja ? "上昇" : "increased") : (L10n.current == .ja ? "低下" : "decreased")
                 result.append(Insight(
                     icon: arrow,
-                    text: String(format: L10n.current == .ja ? "平均気分が %.1f → %.1f に%@しています" : "Average mood %@ from %.1f to %.1f", prevAvg, currentAvg, direction)
+                    text: L10n.avgRatingChange(from: prevAvg, to: currentAvg, direction: diff > 0 ? "上昇" : "低下")
                 ))
             }
         }

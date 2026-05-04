@@ -38,7 +38,7 @@ struct BackupView: View {
                 Label(L10n.importData, systemImage: "square.and.arrow.down")
             }
 
-            Text(L10n.current == .ja ? "記録数: \(items.count)件" : "\(items.count) records")
+            Text(L10n.recordCount(items.count))
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
