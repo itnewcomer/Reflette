@@ -8,15 +8,16 @@ struct ContentView: View {
     @AppStorage("hasSeenGuide") private var hasSeenGuide = false
     @State private var showGuide = false
     @State private var showFirstRecord = false
+    @State private var ratingsForDates: [Date: Int] = [:]
 
-    var ratingsForDates: [Date: Int] {
-        // 同日複数記録の平均値
+    // 同日複数記録の平均値。items 変化時のみ再計算してメモ化
+    private func recomputeRatingsForDates() {
         var grouped: [Date: [Int]] = [:]
         for item in items {
             let day = Calendar.current.startOfDay(for: item.timestamp)
             grouped[day, default: []].append(item.rating)
         }
-        return grouped.mapValues { ratings in
+        ratingsForDates = grouped.mapValues { ratings in
             ratings.reduce(0, +) / ratings.count
         }
     }
@@ -58,11 +59,21 @@ struct ContentView: View {
     }
 
     var body: some View {
-        #if targetEnvironment(macCatalyst)
-        macLayout
-        #else
-        iOSLayout
-        #endif
+        Group {
+            #if targetEnvironment(macCatalyst)
+            macLayout
+            #else
+            iOSLayout
+            #endif
+        }
+        // 追加/削除を検知して再計算
+        .task(id: items.count) {
+            recomputeRatingsForDates()
+        }
+        // rating 編集を検知（count 変化なし）
+        .onChange(of: items.map(\.rating)) { _, _ in
+            recomputeRatingsForDates()
+        }
     }
 
     // MARK: - Mac レイアウト（サイドバー）
