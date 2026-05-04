@@ -69,6 +69,28 @@ docs/
 - コミットに `Co-Authored-By:` 行は入れない
 - リポジトリは GitHub 上で `itnewcomer/Reflette` にリネーム済み（旧 `Memento` URL は redirect）
 
+## ブランチ運用（v1.0.2 〜）
+
+**main は保護**。直 push せず、Issue ごとにブランチ → PR → main にマージ。
+
+**ブランチ命名**:
+- 機能追加: `feat/<issue>-<slug>`  例: `feat/22-swiftdata-migration`
+- バグ修正: `fix/<issue>-<slug>`   例: `fix/13-mac-report-2col`
+- ドキュメント/雑務: `chore/<slug>`
+
+**フロー**:
+```bash
+git switch -c feat/22-swiftdata-migration
+# 実装 → commit（メッセージに "Closes #22" を含める）
+git push -u origin feat/22-swiftdata-migration
+gh pr create --base main --title "..." --body "..."
+# レビュー → squash merge
+```
+
+**例外**: README / CLAUDE.md / typo 等の超軽量変更は main 直 push 可。
+
+**commit-per-Issue は維持**: 1 PR が複数 Issue を含む場合でも、コミットは Issue ごとに分け、それぞれ "Closes #N" を入れる。
+
 ## 開発コマンド
 
 ```bash
