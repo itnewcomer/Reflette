@@ -162,8 +162,7 @@ struct HomeCalendarView: View {
                             get: { appState.initialMonth },
                             set: { appState.initialMonth = $0 }
                         ),
-                        ratingsForDates: ratingsForDates,
-                        onDoubleTap: { showEditor = true }
+                        ratingsForDates: ratingsForDates
                     )
                     SelfCompassionView(items: items, selectedDate: appState.selectedDate)
                 }
@@ -246,8 +245,7 @@ struct HomeCalendarView: View {
                         get: { appState.initialMonth },
                         set: { appState.initialMonth = $0 }
                     ),
-                    ratingsForDates: ratingsForDates,
-                    onDoubleTap: { showEditor = true }
+                    ratingsForDates: ratingsForDates
                 )
 
                 SelfCompassionView(items: items, selectedDate: appState.selectedDate)

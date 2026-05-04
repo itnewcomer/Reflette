@@ -4,7 +4,6 @@ struct RefletteCalendarView: View {
     @Binding var selectedDate: Date?
     @Binding var displayedMonth: Date
     let ratingsForDates: [Date: Int]
-    var onDoubleTap: (() -> Void)? = nil
 
     private let calendar = Calendar.current
     private let weekdaySymbols = Calendar.current.shortWeekdaySymbols
@@ -56,13 +55,8 @@ struct RefletteCalendarView: View {
                             isFirstDay: item.day == goalDay,
                             isLastDay: item.day == reflectDay
                         )
-                        .onTapGesture(count: 2) {
-                            // ダブルタップ: 選択 + 記録画面を開く
-                            selectedDate = date
-                            onDoubleTap?()
-                        }
-                        .onTapGesture(count: 1) {
-                            // シングルタップ: 選択のみ
+                        .onTapGesture {
+                            // 単一タップで即選択。記録は recordPromptCard / 詳細カードの編集ボタンから
                             selectedDate = date
                         }
                     } else {
