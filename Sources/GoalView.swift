@@ -111,86 +111,69 @@ struct GoalTaskDateBadge: View {
     }()
 
     var body: some View {
-        if let date = dueDate {
-            HStack(spacing: 2) {
+        Group {
+            if let date = dueDate {
+                HStack(spacing: 2) {
+                    Button {
+                        pickerDate = date
+                        showPicker = true
+                    } label: {
+                        HStack(spacing: 3) {
+                            Image(systemName: "calendar")
+                                .font(.system(size: 10))
+                            Text(Self.dateFormatter.string(from: date))
+                                .font(.system(size: 12))
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(AppColors.cardBackgroundElevated)
+                        .cornerRadius(6)
+                        .foregroundColor(isOverdue(date) ? AppColors.zoneDown : AppColors.accent)
+                    }
+                    Button {
+                        onChange(nil)
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(AppColors.textSecondary)
+                    }
+                }
+            } else {
                 Button {
-                    pickerDate = date
+                    pickerDate = Date()
                     showPicker = true
                 } label: {
-                    HStack(spacing: 3) {
-                        Image(systemName: "calendar")
-                            .font(.system(size: 10))
-                        Text(Self.dateFormatter.string(from: date))
-                            .font(.system(size: 12))
-                    }
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 3)
-                    .background(AppColors.cardBackgroundElevated)
-                    .cornerRadius(6)
-                    .foregroundColor(isOverdue(date) ? AppColors.zoneDown : AppColors.accent)
-                }
-                Button {
-                    onChange(nil)
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 12))
+                    Image(systemName: "calendar.badge.plus")
+                        .font(.system(size: 16))
                         .foregroundColor(AppColors.textSecondary)
                 }
             }
-            .sheet(isPresented: $showPicker) {
-                NavigationStack {
-                    DatePicker("", selection: $pickerDate, displayedComponents: .date)
-                        .datePickerStyle(.graphical)
-                        .labelsHidden()
-                        .padding()
-                        .navigationTitle(L10n.current == .ja ? "日付を選択" : "Select Date")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                            ToolbarItem(placement: .confirmationAction) {
-                                Button(L10n.save) {
-                                    onChange(Calendar.current.startOfDay(for: pickerDate))
-                                    showPicker = false
-                                }
-                            }
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button(L10n.cancel) { showPicker = false }
-                            }
-                        }
-                }
-                .presentationDetents([.medium])
-            }
-        } else {
-            Button {
-                pickerDate = Date()
-                showPicker = true
-            } label: {
-                Image(systemName: "calendar.badge.plus")
-                    .font(.system(size: 16))
-                    .foregroundColor(AppColors.textSecondary)
-            }
-            .sheet(isPresented: $showPicker) {
-                NavigationStack {
-                    DatePicker("", selection: $pickerDate, displayedComponents: .date)
-                        .datePickerStyle(.graphical)
-                        .labelsHidden()
-                        .padding()
-                        .navigationTitle(L10n.current == .ja ? "日付を選択" : "Select Date")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                            ToolbarItem(placement: .confirmationAction) {
-                                Button(L10n.save) {
-                                    onChange(Calendar.current.startOfDay(for: pickerDate))
-                                    showPicker = false
-                                }
-                            }
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button(L10n.cancel) { showPicker = false }
-                            }
-                        }
-                }
-                .presentationDetents([.medium])
-            }
         }
+        .sheet(isPresented: $showPicker) { datePickerSheet }
+    }
+
+    @ViewBuilder
+    private var datePickerSheet: some View {
+        NavigationStack {
+            DatePicker("", selection: $pickerDate, displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .padding()
+                .navigationTitle(L10n.current == .ja ? "日付を選択" : "Select Date")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(L10n.save) {
+                            onChange(Calendar.current.startOfDay(for: pickerDate))
+                            showPicker = false
+                        }
+                    }
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(L10n.cancel) { showPicker = false }
+                    }
+                }
+        }
+        .presentationDetents([.medium])
     }
 
     private func isOverdue(_ date: Date) -> Bool {
