@@ -67,15 +67,7 @@ class EmotionRecord {
     var note: String
     var item: Item?
 
-    private static let tagRegex = try? NSRegularExpression(pattern: "#[\\p{L}0-9_]+")
-
-    var tags: [String] {
-        guard let regex = EmotionRecord.tagRegex else { return [] }
-        let nsrange = NSRange(note.startIndex..., in: note)
-        return regex.matches(in: note, range: nsrange).compactMap {
-            Range($0.range, in: note).map { String(note[$0]) }
-        }
-    }
+    var tags: [String] { TagParser.extract(from: note) }
 
     init(emotionName: String, note: String = "") {
         self.emotionName = emotionName

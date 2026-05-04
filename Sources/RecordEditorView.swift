@@ -92,7 +92,7 @@ struct RecordEditorView: View {
                                 .stroke(colorForEmotion(emotion).opacity(0.5), lineWidth: 1)
                         )
 
-                        let tags = tagsFromNote(emotionNotes[emotion] ?? "")
+                        let tags = TagParser.extract(from: emotionNotes[emotion] ?? "")
                         if !tags.isEmpty {
                             HStack {
                                 ForEach(tags, id: \.self) { tag in
@@ -156,15 +156,6 @@ struct RecordEditorView: View {
         }
     }
 
-    private func tagsFromNote(_ text: String) -> [String] {
-        let pattern = "#[\\p{L}0-9_]+"
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
-        let nsrange = NSRange(text.startIndex..., in: text)
-        return regex.matches(in: text, range: nsrange).compactMap {
-            Range($0.range, in: text).map { String(text[$0]) }
-        }
-    }
-
     private func saveData() {
         guard let selectedDate = selectedDate else { return }
 
@@ -200,7 +191,7 @@ struct RecordEditorView: View {
     private func registerCustomTags() {
         var freq = UserDefaults.standard.dictionary(forKey: "tagFrequency") as? [String: Int] ?? [:]
         for (_, note) in emotionNotes {
-            for tag in tagsFromNote(note) {
+            for tag in TagParser.extract(from: note) {
                 if freq[tag] == nil {
                     freq[tag] = 1
                 }
